@@ -79,7 +79,6 @@ void Backtrack::BackTrackMatches(const Graph &query, const CandidateSet &cs, std
                 csq.push(csq_new_top);
             }
         }
-        csq.pop();
     }
 }
 
