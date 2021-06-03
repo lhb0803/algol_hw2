@@ -17,6 +17,7 @@
 #include <vector>
 #include <map>
 #include <stack>
+#include <queue>
 
 using Vertex = int32_t;
 using Label = int32_t;
