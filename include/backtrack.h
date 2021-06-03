@@ -29,8 +29,10 @@ class Backtrack {
 
   void PrintAllMatches(const Graph &data, const Graph &query,
                        const CandidateSet &cs);
-  void BackTrackMatches(const Graph &query, const CandidateSet &cs, std::map<Vertex, Vertex>&embedding,
-                        CandidateSetQueue &csq, std::map<Vertex, bool> &mark);
+  void BackTrackMatches(const Graph &query, const CandidateSet &cs, std::map<Vertex, Vertex> embedding,
+                        std::map<Vertex, bool> &mark);
+
+  Vertex GetExtendableVertex(const Graph &query, const CandidateSet &cs, const std::map<Vertex, Vertex> &embedding);
 
   inline void printEmbedding(std::map<Vertex, Vertex> &embedding);
 };
@@ -39,14 +41,14 @@ inline void Backtrack::printEmbedding(std::map<Vertex, Vertex> &embedding) {
     size_t n = embedding.size();
     std::cout << "a ";
     for (size_t i=0; i<n; i++) {
-        Vertex u = (Vertex) i;
+        auto u = (Vertex) i;
         Vertex v = embedding[u];
         std::cout << v;
         if (i < n-1) {
             std::cout << " ";
         }
     }
-    std::cout << "\n";
+    std::cout << std::endl;
 }
 
 
