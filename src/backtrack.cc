@@ -10,26 +10,17 @@ Backtrack::~Backtrack() {}
 
 void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const CandidateSet &cs) {
     // implement your code here.
-//    std::cout << "<G> ID: " << data.GetGraphID() << "\n";
-//    std::cout << "<G> Num of Vertices: " << data.GetNumVertices() << "\n";
-//    std::cout << "<G> Num of Edges: " << data.GetNumEdges() << "\n";
-//    std::cout << "<G> Num of Labels: " << data.GetNumLabels() << "\n" << "\n";
-//
-//    std::cout << "<q> ID: " << query.GetGraphID() << "\n";
-//    std::cout << "<q> Num of Vertices: " << query.GetNumVertices() << "\n";
-//    std::cout << "<q> Num of Edges: " << query.GetNumEdges() << "\n";
-//    std::cout << "<q> Num of Labels: " << query.GetNumLabels() << "\n" << "\n";
-//    CandidateSetQueue cs_queue ;
-//    for (size_t i=0; i<query.GetNumVertices(); i++) {
-//        auto u = (Vertex) i;
-//        auto u_cs_size = cs.GetCandidateSize(u);
-//        std::queue<Vertex> candidates_queue;
-//        for (size_t j=0; j<u_cs_size; j++) {
-//            candidates_queue.push(cs.GetCandidate(u, j));
-//        }
-//        std::pair<size_t, std::queue<Vertex>> candidate_sz_with_vertex = std::pair<size_t, std::queue<Vertex>>(u_cs_size, candidates_queue);
-//        cs_queue.push({u, candidate_sz_with_vertex});
-//    }
+    CandidateSetQueue cs_queue = CandidateSetQueue();
+    for (size_t i=0; i<query.GetNumVertices(); i++) {
+        auto u = (Vertex) i;
+        auto u_cs_size = cs.GetCandidateSize(u);
+        CandidateSpace candidates_space = CandidateSpace();
+        for (size_t j=0; j<u_cs_size; j++) {
+            candidates_space.push_back(cs.GetCandidate(u, j));
+        }
+        CandidateSizeWithSpace candidate_sz_with_vertex = CandidateSizeWithSpace(u_cs_size, candidates_space);
+        cs_queue.push({u, candidate_sz_with_vertex});
+    }
 
     std::cout << "t " << query.GetNumVertices() << std::endl;
 
@@ -39,55 +30,124 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
         auto v = (Vertex) i;
         mark[v] = false;
     }
-    BackTrackMatches(query, cs, embedding, mark);
+
+    BackTrackMatches(data, query, cs_queue, embedding, mark);
 }
 
-void Backtrack::BackTrackMatches(const Graph &query, const CandidateSet &cs, std::map<Vertex, Vertex> embedding,
+void Backtrack::BackTrackMatches(const Graph &data, const Graph &query, CandidateSetQueue csq, std::map<Vertex, Vertex> embedding,
                                  std::map<Vertex, bool> &mark) {
     if (embedding.size() == query.GetNumVertices()) { // |M| = |V(q)| then Report M
         printEmbedding(embedding);
     }
 
     else if (embedding.empty()) { //|M| = 0
-        Vertex r = GetExtendableVertex(query, cs, embedding);
-
-        if (r == -1) return;
-        for (size_t i=0; i<cs.GetCandidateSize(r); i++) {
-            Vertex v = cs.GetCandidate(r, i);
+//        std::cout << "INITIATE" << std::endl;
+        CandidateMapping candidate_mapping = GetExtendableVertex(data, query, csq, embedding, mark);
+        Vertex r = candidate_mapping.first;
+        if (r == -1) { // No Extendable Vertex
+//            std::cout << "No Extendable Vertex" << std::endl;
+            return;
+        }
+        size_t cs_sz = candidate_mapping.second.first;
+        CandidateSpace candidate_space = candidate_mapping.second.second;
+        for (size_t i=0; i<cs_sz; i++) {
+            Vertex v = candidate_space[i];
             embedding[r] = v; mark[v] = true;
-            BackTrackMatches(query, cs, embedding, mark); mark[v] = false;
+//            std::cout << "Select r: " << r << " v: "<< v << std::endl;
+//            std::cout << "Embedding Size: |" << embedding.size() << "|" << std::endl;
+            BackTrackMatches(data, query, csq, embedding, mark); mark[v] = false;
         }
     }
 
     else {
         // u = extendable vertex with minimum candidate size |C(u)|
-        Vertex u = GetExtendableVertex(query, cs, embedding);
-        if (u == -1) return;
-        for (size_t i=0; i<cs.GetCandidateSize(u); i++) {
-            Vertex v = cs.GetCandidate(u, i);
+        CandidateMapping candidate_mapping = GetExtendableVertex(data, query, csq, embedding, mark);
+        Vertex u = candidate_mapping.first;
+        if (u == -1) { // No Extendable Vertex
+//            std::cout << "No Extendable Vertex" << std::endl;
+            return;
+        }
+        size_t cs_sz = candidate_mapping.second.first;
+        CandidateSpace candidate_space = candidate_mapping.second.second;
+        for (size_t i=0; i<cs_sz; i++) {
+            Vertex v = candidate_space[i];
             if (!mark[v]) {
                 embedding[u] = v; mark[v] = true;
-                BackTrackMatches(query, cs, embedding, mark); mark[v] = false;
+//                std::cout << "Select u: " << u << " v: "<< v << std::endl;
+//                std::cout << "Embedding Size: |" << embedding.size() << "|" << std::endl;
+                BackTrackMatches(data, query, csq, embedding, mark); mark[v] = false;
             }
         }
     }
 }
 
-Vertex Backtrack::GetExtendableVertex(const Graph &query, const CandidateSet &cs,
-                                      const std::map<Vertex, Vertex> &embedding) {
+CandidateMapping Backtrack::GetExtendableVertex(const Graph &data, const Graph &query, CandidateSetQueue &csq,
+                                      const std::map<Vertex, Vertex> &embedding, const std::map<Vertex, bool> &mark) {
+    if (csq.empty()) { // No Extendable Vertex
+//        std::cout << "csq is empty!" << std::endl;
+        return CandidateMapping(-1, CandidateSizeWithSpace(-1, CandidateSpace()));
+    }
+    // 1. u* : which has minimum candidate space size
+//    std::cout << "debug" << std::endl;
+    CandidateMapping candidate_mapping = csq.top(); csq.pop();
+    Vertex u_star = candidate_mapping.first;
+//    std::cout << "u_star: " << u_star << std::endl;
+    CandidateSizeWithSpace cs_sz_with_cs = candidate_mapping.second;
+    CandidateSpace candidate_space = cs_sz_with_cs.second;
 
-    size_t min_candi_sz = std::numeric_limits<size_t>::max();
-    Vertex extendable_u = -1;
+    // 2. fix candidate space
+//    std::cout << "candidate space before fixing: ";
+//    for (auto v : candidate_space) std::cout << v << " ";
+//    std::cout << std::endl;
+    FixCandidateSpace(data, query, u_star, candidate_space, embedding, mark);
+//    std::cout << "candidate space after fixing: ";
+//    for (auto v : candidate_space) std::cout << v << " ";
+//    std::cout << std::endl;
 
-    for (size_t i=0; i<query.GetNumVertices(); i++) { // O(|V|)
-        auto u = (Vertex) i;
+    // 3-A. if candidate space empty: recurse
+    if (candidate_space.empty()) {
+        return GetExtendableVertex(data, query, csq, embedding, mark);
+    }
+    // 3-B. else: return CandidateMapping
+    else {
+        CandidateSizeWithSpace to_return_cs_sz_with_cs = CandidateSizeWithSpace(candidate_space.size(), candidate_space);
+        CandidateMapping to_return_candi_map = CandidateMapping(u_star, to_return_cs_sz_with_cs);
+        return to_return_candi_map;
+    }
+}
 
-        if (embedding.count(u)==0 && cs.GetCandidateSize(u)<min_candi_sz) { // if u is not embedded and smallest size
-            min_candi_sz = cs.GetCandidateSize(u);
-            extendable_u = u;
+void Backtrack::FixCandidateSpace(const Graph &data, const Graph &query, const Vertex &u_star, CandidateSpace &candidate_space,
+                                  const std::map<Vertex, Vertex> &embedding, const std::map<Vertex, bool> &mark) {
+    // 2-1. get rid of all v* which are already embedded.
+    CandidateSpace new_candidate_space = CandidateSpace();
+    for (Vertex v_star : candidate_space) {
+        if (mark.at(v_star)) {
+//            std::cout << v_star << " is visited!" << std::endl;
+            continue;
+        }
+        else {
+            new_candidate_space.push_back(v_star);
         }
     }
-
-    return extendable_u;
+    candidate_space.clear();
+    // 2-2. check the edge between u* and u with the edge between v* and v.
+    if (embedding.empty()) {
+        candidate_space = new_candidate_space;
+    }
+    else {
+        for (Vertex v_star : new_candidate_space) {
+            bool can_be_candidate = true;
+            for (auto mapping : embedding) {
+                if (query.IsNeighbor(mapping.first, u_star) != data.IsNeighbor(mapping.second, v_star)) {
+                    can_be_candidate = false;
+//                    std::cout << v_star << "'s relationship is not same with " << u_star << " :(" << std::endl;
+                    break;
+                }
+            }
+            if (can_be_candidate) {
+                candidate_space.push_back(v_star);
+            }
+        }
+    }
 }
 

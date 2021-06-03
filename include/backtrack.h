@@ -9,17 +9,20 @@
 #include "candidate_set.h"
 #include "common.h"
 #include "graph.h"
+using CandidateSpace = std::vector<Vertex>;
+using CandidateSizeWithSpace = std::pair<size_t, CandidateSpace>;
+using CandidateMapping = std::pair<Vertex, CandidateSizeWithSpace>;
 struct cmp {
-    bool operator()(std::pair<Vertex, std::pair<size_t, std::queue<Vertex>>>&u1, std::pair<Vertex, std::pair<size_t, std::queue<Vertex>>>&u2) {
+    bool operator()(CandidateMapping &u1, CandidateMapping &u2) {
         if(u1.second.first == u2.second.first) {
-            return u1.first < u2.first;
+            return u1.first > u2.first;
         }
         else {
             return u1.second.first > u2.second.first;
         }
     }
 };
-using CandidateSetQueue = std::priority_queue<std::pair<Vertex, std::pair<size_t, std::queue<Vertex>>>, std::vector<std::pair<Vertex, std::pair<size_t, std::queue<Vertex>>>>, cmp>;
+using CandidateSetQueue = std::priority_queue<CandidateMapping, std::vector<CandidateMapping>, cmp>;
 // csq = {{u, {candidate_sz, {u0, u1, u2, ... }}}, ... }
 
 class Backtrack {
@@ -29,10 +32,14 @@ class Backtrack {
 
   void PrintAllMatches(const Graph &data, const Graph &query,
                        const CandidateSet &cs);
-  void BackTrackMatches(const Graph &query, const CandidateSet &cs, std::map<Vertex, Vertex> embedding,
+  void BackTrackMatches(const Graph &data, const Graph &query, CandidateSetQueue csq, std::map<Vertex, Vertex> embedding,
                         std::map<Vertex, bool> &mark);
 
-  Vertex GetExtendableVertex(const Graph &query, const CandidateSet &cs, const std::map<Vertex, Vertex> &embedding);
+  CandidateMapping GetExtendableVertex(const Graph &data, const Graph &query, CandidateSetQueue &csq,
+                                       const std::map<Vertex, Vertex> &embedding, const std::map<Vertex, bool> &mark);
+
+  void FixCandidateSpace(const Graph &data, const Graph &query, const Vertex &u_star, CandidateSpace &candidate_space,
+                         const std::map<Vertex, Vertex> &embedding, const std::map<Vertex, bool> &mark);
 
   inline void printEmbedding(std::map<Vertex, Vertex> &embedding);
 };
@@ -50,8 +57,5 @@ inline void Backtrack::printEmbedding(std::map<Vertex, Vertex> &embedding) {
     }
     std::cout << std::endl;
 }
-
-
-
 
 #endif  // BACKTRACK_H_
