@@ -8,6 +8,8 @@
 #include "common.h"
 #include "graph.h"
 
+#define PRINT_TIME 0
+
 int main(int argc, char* argv[]) {
 //    std::cout << "Hello, World!" <<std::endl;
   if (argc < 4) {
@@ -25,16 +27,19 @@ int main(int argc, char* argv[]) {
   CandidateSet candidate_set(candidate_set_file_name);
 
   Backtrack backtrack;
-
+#if PRINT_TIME
   time_t start, end;
   start = clock();
+#endif
   try {
       backtrack.PrintAllMatches(data, query, candidate_set);
   }
   catch (const char* e) {
+#if PRINT_TIME
       end = clock();
       std::cout << e << std::endl;
       std::cout << "time: " << (end-start) << "ms" << std::endl;
+#endif
   }
   return EXIT_SUCCESS;
 }
