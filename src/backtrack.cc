@@ -4,6 +4,7 @@
  */
 
 #include "backtrack.h"
+#define DEBUG_BUTTON 0 // 0: off / 1: on / 2: check FixCandidateSpace()
 
 Backtrack::Backtrack() {}
 Backtrack::~Backtrack() {}
@@ -41,21 +42,25 @@ void Backtrack::BackTrackMatches(const Graph &data, const Graph &query, Candidat
                                  std::map<Vertex, bool> &mark) {
     if (embedding.size() == query.GetNumVertices()) { // |M| = |V(q)| then Report M
         cnt++;
-        // std::cout << "embedding counts: " << cnt << std::endl;
+#if DEBUG_BUTTON==1
+        std::cout << "embedding counts: " << cnt << std::endl;
+#endif
         if (cnt >= 100000) {
-            //exit(EXIT_SUCCESS);
             throw "Done!\n";
-            //exit(1);
         }
         printEmbedding(embedding);
     }
 
     else if (embedding.empty()) { //|M| = 0
-//        std::cout << "INITIATE" << std::endl;
+#if DEBUG_BUTTON==1
+        std::cout << "INITIATE" << std::endl;
+#endif
         CandidateMapping candidate_mapping = GetExtendableVertex(data, query, csq, embedding, mark);
         Vertex r = candidate_mapping.first;
         if (r == -1) { // No Extendable Vertex
-//            std::cout << "No Extendable Vertex" << std::endl;
+#if DEBUG_BUTTON==1
+            std::cout << "No Extendable Vertex" << std::endl;
+#endif
             return;
         }
         size_t cs_sz = candidate_mapping.second.first;
@@ -63,8 +68,10 @@ void Backtrack::BackTrackMatches(const Graph &data, const Graph &query, Candidat
         for (size_t i=0; i<cs_sz; i++) {
             Vertex v = candidate_space[i];
             embedding[r] = v; mark[v] = true;
-//            std::cout << "Select r: " << r << " v: "<< v << std::endl;
-//            std::cout << "Embedding Size: |" << embedding.size() << "|" << std::endl;
+#if DEBUG_BUTTON==1
+            std::cout << "Select r: " << r << " v: "<< v << std::endl;
+            std::cout << "Embedding Size: |" << embedding.size() << "|" << std::endl;
+#endif
             BackTrackMatches(data, query, csq, embedding, mark); mark[v] = false;
         }
     }
@@ -74,7 +81,9 @@ void Backtrack::BackTrackMatches(const Graph &data, const Graph &query, Candidat
         CandidateMapping candidate_mapping = GetExtendableVertex(data, query, csq, embedding, mark);
         Vertex u = candidate_mapping.first;
         if (u == -1) { // No Extendable Vertex
-//            std::cout << "No Extendable Vertex" << std::endl;
+#if DEBUG_BUTTON==1
+            std::cout << "No Extendable Vertex" << std::endl;
+#endif
             return;
         }
         size_t cs_sz = candidate_mapping.second.first;
@@ -83,8 +92,10 @@ void Backtrack::BackTrackMatches(const Graph &data, const Graph &query, Candidat
             Vertex v = candidate_space[i];
             if (!mark[v]) {
                 embedding[u] = v; mark[v] = true;
-//                std::cout << "Select u: " << u << " v: "<< v << std::endl;
-//                std::cout << "Embedding Size: |" << embedding.size() << "|" << std::endl;
+#if DEBUG_BUTTON==1
+                std::cout << "Select u: " << u << " v: "<< v << std::endl;
+                std::cout << "Embedding Size: |" << embedding.size() << "|" << std::endl;
+#endif
                 BackTrackMatches(data, query, csq, embedding, mark); mark[v] = false;
             }
         }
@@ -94,21 +105,26 @@ void Backtrack::BackTrackMatches(const Graph &data, const Graph &query, Candidat
 CandidateMapping Backtrack::GetExtendableVertex(const Graph &data, const Graph &query, CandidateSetQueue &csq,
                                       const std::map<Vertex, Vertex> &embedding, const std::map<Vertex, bool> &mark) {
     // 1. u* : which has minimum candidate space size
-//    std::cout << "debug" << std::endl;
     CandidateMapping candidate_mapping = csq.top(); csq.pop();
     Vertex u_star = candidate_mapping.first;
-//    std::cout << "u_star: " << u_star << std::endl;
+#if DEBUG_BUTTON==1
+    std::cout << "u_star: " << u_star << std::endl;
+#endif
     CandidateSizeWithSpace cs_sz_with_cs = candidate_mapping.second;
     CandidateSpace candidate_space = cs_sz_with_cs.second;
 
     // 2. fix candidate space
-//    std::cout << "candidate space before fixing: ";
-//    for (auto v : candidate_space) std::cout << v << " ";
-//    std::cout << std::endl;
+#if DEBUG_BUTTON==1
+    std::cout << "candidate space before fixing: ";
+    for (auto v : candidate_space) std::cout << v << " ";
+    std::cout << std::endl;
+#endif
     FixCandidateSpace(data, query, u_star, candidate_space, embedding, mark);
-//    std::cout << "candidate space after fixing: ";
-//    for (auto v : candidate_space) std::cout << v << " ";
-//    std::cout << std::endl;
+#if DEBUG_BUTTON==1
+    std::cout << "candidate space after fixing: ";
+    for (auto v : candidate_space) std::cout << v << " ";
+    std::cout << std::endl;
+#endif
 
     // 3-A. if candidate space empty: No Extendable Vertex
     if (candidate_space.empty()) { // No Extendable Vertex
@@ -128,7 +144,9 @@ void Backtrack::FixCandidateSpace(const Graph &data, const Graph &query, const V
     CandidateSpace new_candidate_space = CandidateSpace();
     for (Vertex v_star : candidate_space) {
         if (mark.at(v_star)) {
-//            std::cout << v_star << " is visited!" << std::endl;
+#if DEBUG_BUTTON==2
+            std::cout << v_star << " is visited!" << std::endl;
+#endif
             continue;
         }
         else {
@@ -146,7 +164,9 @@ void Backtrack::FixCandidateSpace(const Graph &data, const Graph &query, const V
             for (auto mapping : embedding) {
                 if (query.IsNeighbor(mapping.first, u_star) && !data.IsNeighbor(mapping.second, v_star)) {
                     can_be_candidate = false;
-//                    std::cout << v_star << "'s relationship is not same with " << u_star << " :(" << std::endl;
+#if DEBUG_BUTTON==2
+                    std::cout << v_star << "'s relationship is not same with " << u_star << " :(" << std::endl;
+#endif
                     break;
                 }
             }
