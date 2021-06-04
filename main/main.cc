@@ -26,7 +26,15 @@ int main(int argc, char* argv[]) {
 
   Backtrack backtrack;
 
-  backtrack.PrintAllMatches(data, query, candidate_set);
-
+  time_t start, end;
+  start = clock();
+  try {
+      backtrack.PrintAllMatches(data, query, candidate_set);
+  }
+  catch (const char* e) {
+      end = clock();
+      std::cout << e << std::endl;
+      std::cout << "time: " << (end-start) << "ms" << std::endl;
+  }
   return EXIT_SUCCESS;
 }

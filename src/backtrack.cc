@@ -8,6 +8,8 @@
 Backtrack::Backtrack() {}
 Backtrack::~Backtrack() {}
 
+static int cnt = 0;
+
 void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const CandidateSet &cs) {
     // implement your code here.
     CandidateSetQueue cs_queue = CandidateSetQueue();
@@ -32,11 +34,19 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
     }
 
     BackTrackMatches(data, query, cs_queue, embedding, mark);
+    throw "Done!\n";
 }
 
 void Backtrack::BackTrackMatches(const Graph &data, const Graph &query, CandidateSetQueue csq, std::map<Vertex, Vertex> embedding,
                                  std::map<Vertex, bool> &mark) {
     if (embedding.size() == query.GetNumVertices()) { // |M| = |V(q)| then Report M
+        cnt++;
+        // std::cout << "embedding counts: " << cnt << std::endl;
+        if (cnt >= 100000) {
+            //exit(EXIT_SUCCESS);
+            throw "Done!\n";
+            //exit(1);
+        }
         printEmbedding(embedding);
     }
 
@@ -83,10 +93,6 @@ void Backtrack::BackTrackMatches(const Graph &data, const Graph &query, Candidat
 
 CandidateMapping Backtrack::GetExtendableVertex(const Graph &data, const Graph &query, CandidateSetQueue &csq,
                                       const std::map<Vertex, Vertex> &embedding, const std::map<Vertex, bool> &mark) {
-    if (csq.empty()) { // No Extendable Vertex
-//        std::cout << "csq is empty!" << std::endl;
-        return CandidateMapping(-1, CandidateSizeWithSpace(-1, CandidateSpace()));
-    }
     // 1. u* : which has minimum candidate space size
 //    std::cout << "debug" << std::endl;
     CandidateMapping candidate_mapping = csq.top(); csq.pop();
@@ -104,9 +110,9 @@ CandidateMapping Backtrack::GetExtendableVertex(const Graph &data, const Graph &
 //    for (auto v : candidate_space) std::cout << v << " ";
 //    std::cout << std::endl;
 
-    // 3-A. if candidate space empty: recurse
-    if (candidate_space.empty()) {
-        return GetExtendableVertex(data, query, csq, embedding, mark);
+    // 3-A. if candidate space empty: No Extendable Vertex
+    if (candidate_space.empty()) { // No Extendable Vertex
+        return CandidateMapping(-1, CandidateSizeWithSpace(-1, CandidateSpace()));
     }
     // 3-B. else: return CandidateMapping
     else {
@@ -138,7 +144,7 @@ void Backtrack::FixCandidateSpace(const Graph &data, const Graph &query, const V
         for (Vertex v_star : new_candidate_space) {
             bool can_be_candidate = true;
             for (auto mapping : embedding) {
-                if (query.IsNeighbor(mapping.first, u_star) != data.IsNeighbor(mapping.second, v_star)) {
+                if (query.IsNeighbor(mapping.first, u_star) && !data.IsNeighbor(mapping.second, v_star)) {
                     can_be_candidate = false;
 //                    std::cout << v_star << "'s relationship is not same with " << u_star << " :(" << std::endl;
                     break;

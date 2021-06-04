@@ -18,6 +18,8 @@
 #include <map>
 #include <stack>
 #include <queue>
+#include <cstdlib>
+#include <ctime>
 
 using Vertex = int32_t;
 using Label = int32_t;
