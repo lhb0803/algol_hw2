@@ -57,18 +57,18 @@ struct cmp_remember {
         if(u2.first.first == 14 ||u2.first.first == 11){
             return true;
         }
-        */
+
         if(u1.first.first == 16){
             return false;
         }
         if(u2.first.first == 16 ) {
             return true;
-        }
-            if(u1.second.first == u2.second.first) {
-            return u1.first.second > u2.first.second;
+        }*/
+            if(u1.first.second == u2.first.second) {
+            return u1.second.first > u2.second.first;
         }
         else {
-            return u1.second.first > u2.second.first;
+            return u1.first.second < u2.first.second;
         }
     }
 };

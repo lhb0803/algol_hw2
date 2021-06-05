@@ -44,9 +44,9 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
         NeighborsAndCandidateSpace n_and_cs = NeighborsAndCandidateSpace(neighbors, candidates_space);
         CandidateSizeWithNeighborsAndSpace candidate_sz_with_vertex = CandidateSizeWithNeighborsAndSpace(u_cs_size, n_and_cs);
 
-        cs_queue.push({{u, GetOtherLabelNum(u, query)}, candidate_sz_with_vertex});
+        cs_queue.push({{u, 1000*query.GetLabel(u) + GetOtherLabelNum(u, query)}, candidate_sz_with_vertex});
 #if DEBUG_BUTTON == 1
-        std::cout << u << "is INSERTED : WEIGHT IS " << GetOtherLabelNum(u, query) << " and LABEL is " << query.GetLabel(u) << std::endl;
+        std::cout << u << "is INSERTED : WEIGHT IS " << 1000*query.GetLabel(u)+GetOtherLabelNum(u, query) << " and LABEL is " << query.GetLabel(u) << std::endl;
 #endif
 
     }
