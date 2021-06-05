@@ -5,7 +5,7 @@
 
 #include "backtrack.h"
 #define DEBUG_BUTTON 0 // 0: off / 1: on / 2: check FixCandidateSpace()
-#define NEIGHBOR_REMEMBER 0
+#define NEIGHBOR_REMEMBER 1
 
 Backtrack::Backtrack() {}
 Backtrack::~Backtrack() {}
@@ -46,7 +46,6 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
         cs_queue.push({u, candidate_sz_with_vertex});
     }
 #endif
-
     std::cout << "t " << query.GetNumVertices() << std::endl;
 
     std::map<Vertex, Vertex> embedding = std::map<Vertex, Vertex>();
