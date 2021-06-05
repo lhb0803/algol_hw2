@@ -8,7 +8,7 @@
 #include "common.h"
 #include "graph.h"
 
-#define PRINT_TIME 0
+#define PRINT_TIME 1
 
 int main(int argc, char* argv[]) {
 //    std::cout << "Hello, World!" <<std::endl;
