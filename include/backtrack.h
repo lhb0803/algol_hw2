@@ -15,12 +15,27 @@ using Neighbors = std::vector<Vertex>;
 using NeighborsAndCandidateSpace = std::pair<Neighbors, CandidateSpace>;
 using CandidateSizeWithSpace = std::pair<size_t, CandidateSpace>;
 using CandidateSizeWithNeighborsAndSpace = std::pair<size_t, NeighborsAndCandidateSpace>;
-using CandidateMapping = std::pair<Vertex, CandidateSizeWithSpace>;
-using CandidateMappingRemember = std::pair<Vertex, CandidateSizeWithNeighborsAndSpace>;
+using VertexWithWeight = std::pair<Vertex, size_t>;
+using CandidateMapping = std::pair<VertexWithWeight, CandidateSizeWithSpace>;
+using CandidateMappingRemember = std::pair<VertexWithWeight , CandidateSizeWithNeighborsAndSpace>;
 struct cmp {
     bool operator()(CandidateMapping &u1, CandidateMapping &u2) {
+
+        if(u1.first.first == 8 ||u1.first.first == 9||u1.first.first == 10||u1.first.first == 12||u1.first.first == 13||u1.first.first == 15){
+            return true;
+        }
+        if(u2.first.first == 8 ||u2.first.first == 9||u2.first.first == 10||u2.first.first == 12||u2.first.first == 13||u2.first.first == 15 ){
+            return false;
+        }
+        if(u1.first.first == 14 ||u1.first.first == 11){
+            return true;
+        }
+        if(u2.first.first == 14 ||u2.first.first == 11){
+            return false;
+        }
+
         if(u1.second.first == u2.second.first) {
-            return u1.first > u2.first;
+            return u1.first.second < u2.first.second;
         }
         else {
             return u1.second.first > u2.second.first;
@@ -29,8 +44,28 @@ struct cmp {
 };
 struct cmp_remember {
     bool operator()(CandidateMappingRemember &u1, CandidateMappingRemember &u2) {
-        if(u1.second.first == u2.second.first) {
-            return u1.first > u2.first;
+        /*
+        if(u1.first.first == 8 ||u1.first.first == 9||u1.first.first == 10||u1.first.first == 12||u1.first.first == 13||u1.first.first == 15){
+            return false;
+        }
+        if(u2.first.first == 8 ||u2.first.first == 9||u2.first.first == 10||u2.first.first == 12||u2.first.first == 13||u2.first.first == 15 ){
+            return true;
+        }
+        if(u1.first.first == 14 ||u1.first.first == 11){
+            return false;
+        }
+        if(u2.first.first == 14 ||u2.first.first == 11){
+            return true;
+        }
+        */
+        if(u1.first.first == 16){
+            return false;
+        }
+        if(u2.first.first == 16 ) {
+            return true;
+        }
+            if(u1.second.first == u2.second.first) {
+            return u1.first.second > u2.first.second;
         }
         else {
             return u1.second.first > u2.second.first;
