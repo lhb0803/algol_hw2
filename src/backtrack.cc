@@ -4,7 +4,7 @@
  */
 
 #include "backtrack.h"
-#define DEBUG_BUTTON 1 // 0: off / 1: on / 2: check FixCandidateSpace()
+#define DEBUG_BUTTON 0 // 0: off / 1: on / 2: check FixCandidateSpace()
 #define NEIGHBOR_REMEMBER 1
 
 Backtrack::Backtrack() {}
@@ -52,11 +52,11 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
 #endif
 
     }
-    std::cout << "-----TOTAL INFORMATION-----" << std::endl;
+//    std::cout << "-----TOTAL INFORMATION-----" << std::endl;
     size_t a = query.GetNumVertices();
-    size_t b = query.GetNumLabels();
-    std::cout << "Total Vertice in Query is : " << a << std::endl;
-    std::cout << "Total Label in Query is : " << b << std::endl;
+//    size_t b = query.GetNumLabels();
+//    std::cout << "Total Vertice in Query is : " << a << std::endl;
+//    std::cout << "Total Label in Query is : " << b << std::endl;
     for(size_t i = 0 ; i < a ; i++){
         Vertex check = i;
         Label label = query.GetLabel(check);
@@ -64,14 +64,14 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
         size_t other = 0;
         for(size_t j = query.GetNeighborStartOffset(i); j < query.GetNeighborEndOffset(i); j++){
             Vertex neighbor = query.GetNeighbor(j);
-            std::cout << "Vertex " << check << "'s neighbor : " << neighbor << " and label is : " << query.GetLabel(neighbor) << std::endl;
+//            std::cout << "Vertex " << check << "'s neighbor : " << neighbor << " and label is : " << query.GetLabel(neighbor) << std::endl;
             if (query.GetLabel(neighbor) != label){
                 other++;
             } else {
                 same++;
             }
         }
-        std::cout << "Same Label Count : " << same << " Other Label Count : " << other << std::endl;
+//        std::cout << "Same Label Count : " << same << " Other Label Count : " << other << std::endl;
     }
 
 
@@ -91,7 +91,7 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
 
     std::cout << "t " << query.GetNumVertices() << std::endl;
 
-    std::map<Vertex, Vertex> embedding = std::map<Vertex, Vertex>();
+    Embedding embedding = Embedding();
     std::map<Vertex, bool> mark = std::map<Vertex, bool>();
     for (size_t i=0; i<data.GetNumVertices(); i++) {
         auto v = (Vertex) i;

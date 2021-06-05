@@ -20,8 +20,6 @@ using CandidateMapping = std::pair<VertexWithWeight, CandidateSizeWithSpace>;
 using CandidateMappingRemember = std::pair<VertexWithWeight , CandidateSizeWithNeighborsAndSpace>;
 struct cmp {
     bool operator()(CandidateMapping &u1, CandidateMapping &u2) {
-
-
         if(u1.second.first == u2.second.first) {
             return u1.first.second < u2.first.second;
         }
