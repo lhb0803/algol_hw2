@@ -4,7 +4,7 @@
  */
 
 #include "backtrack.h"
-#define DEBUG_BUTTON 0 // 0: off / 1: on / 2: check FixCandidateSpace()
+#define DEBUG_BUTTON 1 // 0: off / 1: on / 2: check FixCandidateSpace()
 #define NEIGHBOR_REMEMBER 1
 
 Backtrack::Backtrack() {}
@@ -45,12 +45,14 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
         CandidateSizeWithNeighborsAndSpace candidate_sz_with_vertex = CandidateSizeWithNeighborsAndSpace(u_cs_size, n_and_cs);
 
         cs_queue.push({{u, 1000*query.GetLabel(u) + GetOtherLabelNum(u, query)}, candidate_sz_with_vertex});
+        // Weight : Label first, Other Node second :
+
 #if DEBUG_BUTTON == 1
         std::cout << u << "is INSERTED : WEIGHT IS " << 1000*query.GetLabel(u)+GetOtherLabelNum(u, query) << " and LABEL is " << query.GetLabel(u) << std::endl;
 #endif
 
     }
-/*    std::cout << "-----TOTAL INFORMATION-----" << std::endl;
+    std::cout << "-----TOTAL INFORMATION-----" << std::endl;
     size_t a = query.GetNumVertices();
     size_t b = query.GetNumLabels();
     std::cout << "Total Vertice in Query is : " << a << std::endl;
@@ -71,7 +73,7 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
         }
         std::cout << "Same Label Count : " << same << " Other Label Count : " << other << std::endl;
     }
-    */
+
 
 #else
     CandidateSetQueue cs_queue = CandidateSetQueue();
@@ -373,11 +375,10 @@ void Backtrack::FixCandidateSpace(const Graph &data, const Graph &query, const V
     else {
         for (Vertex v_star : new_candidate_space) {
             bool can_be_candidate = true;
-
+            // pruning : if candidate has lower neighbor than query vertex, It can not be.
             for (auto mapping : embedding) {
                 if(!CanbeCandi(u_star, v_star, data, query)){
                     can_be_candidate = false;
-                    //std::cout << v_star << " is out!!! " << std::endl;
                     break;
                 }
 

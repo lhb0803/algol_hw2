@@ -21,54 +21,23 @@ using CandidateMappingRemember = std::pair<VertexWithWeight , CandidateSizeWithN
 struct cmp {
     bool operator()(CandidateMapping &u1, CandidateMapping &u2) {
 
-        if(u1.first.first == 8 ||u1.first.first == 9||u1.first.first == 10||u1.first.first == 12||u1.first.first == 13||u1.first.first == 15){
-            return true;
-        }
-        if(u2.first.first == 8 ||u2.first.first == 9||u2.first.first == 10||u2.first.first == 12||u2.first.first == 13||u2.first.first == 15 ){
-            return false;
-        }
-        if(u1.first.first == 14 ||u1.first.first == 11){
-            return true;
-        }
-        if(u2.first.first == 14 ||u2.first.first == 11){
-            return false;
-        }
 
         if(u1.second.first == u2.second.first) {
             return u1.first.second < u2.first.second;
         }
         else {
-            return u1.second.first > u2.second.first;
+            return u1.first.second > u2.second.first;
         }
     }
 };
 struct cmp_remember {
     bool operator()(CandidateMappingRemember &u1, CandidateMappingRemember &u2) {
-        /*
-        if(u1.first.first == 8 ||u1.first.first == 9||u1.first.first == 10||u1.first.first == 12||u1.first.first == 13||u1.first.first == 15){
-            return false;
-        }
-        if(u2.first.first == 8 ||u2.first.first == 9||u2.first.first == 10||u2.first.first == 12||u2.first.first == 13||u2.first.first == 15 ){
-            return true;
-        }
-        if(u1.first.first == 14 ||u1.first.first == 11){
-            return false;
-        }
-        if(u2.first.first == 14 ||u2.first.first == 11){
-            return true;
-        }
 
-        if(u1.first.first == 16){
-            return false;
-        }
-        if(u2.first.first == 16 ) {
-            return true;
-        }*/
-            if(u1.first.second == u2.first.second) {
-            return u1.second.first > u2.second.first;
+            if(u1.second.first == u2.second.first) {
+            return u1.first.second < u2.first.second;
         }
         else {
-            return u1.first.second < u2.first.second;
+            return u1.second.first > u2.second.first;
         }
     }
 };
