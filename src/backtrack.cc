@@ -88,7 +88,6 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
         cs_queue.push({{u, query.GetLabelFrequency(u)}, candidate_sz_with_vertex});
     }
 #endif
-
     std::cout << "t " << query.GetNumVertices() << std::endl;
 
     Embedding embedding = Embedding();
@@ -298,9 +297,11 @@ CandidateMappingRemember Backtrack::GetExtendableVertex(const Graph &data, const
 #endif
 
     // 3-A. if candidate space empty: No Extendable Vertex
+
     if (candidate_space.empty()) { // No Extendable Vertex
         return CandidateMappingRemember({-1,-1}, CandidateSizeWithNeighborsAndSpace(-1, NeighborsAndCandidateSpace(Neighbors(), CandidateSpace())));
     }
+    // 3-B. else: return CandidateMapping
     else {
         n_candidate_space = NeighborsAndCandidateSpace(n_candidate_space.first ,candidate_space);
         CandidateSizeWithNeighborsAndSpace to_return_cs_sz_with_cs = CandidateSizeWithNeighborsAndSpace(candidate_space.size(), n_candidate_space);
