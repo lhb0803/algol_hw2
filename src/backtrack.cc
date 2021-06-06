@@ -4,7 +4,7 @@
  */
 
 #include "backtrack.h"
-#define DEBUG_BUTTON 1 // 0: off / 1: on / 2: check FixCandidateSpace()
+#define DEBUG_BUTTON 0 // 0: off / 1: on / 2: check FixCandidateSpace()
 #define NEIGHBOR_REMEMBER 1
 
 Backtrack::Backtrack() {}
@@ -52,6 +52,7 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
 #endif
 
     }
+    /*
     std::cout << "-----TOTAL INFORMATION-----" << std::endl;
     size_t a = query.GetNumVertices();
     size_t b = query.GetNumLabels();
@@ -72,7 +73,7 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
             }
         }
         std::cout << "Same Label Count : " << same << " Other Label Count : " << other << std::endl;
-    }
+    }*/
 
 
 #else
