@@ -13,10 +13,8 @@ using Embedding = std::map<Vertex, Vertex>;
 using CandidateSpace = std::vector<Vertex>;
 using Neighbors = std::vector<Vertex>;
 using NeighborsAndCandidateSpace = std::pair<Neighbors, CandidateSpace>;
-using CandidateSizeWithSpace = std::pair<size_t, CandidateSpace>;
 using CandidateSizeWithNeighborsAndSpace = std::pair<size_t, NeighborsAndCandidateSpace>;
 using VertexWithWeight = std::pair<Vertex, size_t>;
-using CandidateMapping = std::pair<VertexWithWeight, CandidateSizeWithSpace>;
 using CandidateMappingRemember = std::pair<VertexWithWeight , CandidateSizeWithNeighborsAndSpace>;
 
 struct cmp_remember {
@@ -32,8 +30,6 @@ struct cmp_remember {
 };
 
 using CandidateSetQueueRemember = std::priority_queue<CandidateMappingRemember, std::vector<CandidateMappingRemember>, cmp_remember>;
-
-// csq = {{u, {candidate_sz, {u0, u1, u2, ... }}}, ... }
 
 class Backtrack {
  public:
@@ -87,7 +83,7 @@ inline size_t Backtrack::GetOtherLabelNum(const Vertex &a, const Graph &query) {
 
 inline size_t Backtrack::calculateWeight(const Vertex &u, const Graph &query) {
     // first weight : Label of Vertex
-    // Second weight : # of Vertex connected to target Vertex
+    // second weight : # of Vertex connected to target Vertex
     return 1000*query.GetLabel(u)+GetOtherLabelNum(u, query);
 }
 
