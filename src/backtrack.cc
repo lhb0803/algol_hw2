@@ -12,18 +12,6 @@ Backtrack::~Backtrack() {}
 
 static int cnt = 0;
 
-size_t GetOtherLabelNum(const Vertex a, const Graph &query) {
-    Label label = query.GetLabel(a);
-    size_t other = 0;
-    for(size_t i = query.GetNeighborStartOffset(a); i < query.GetNeighborEndOffset(a); i++) {
-        Vertex neighbor = query.GetNeighbor(i);
-        if(label != query.GetLabel(neighbor)) {
-            other++;
-        }
-    }
-    return other;
-}
-
 void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const CandidateSet &cs) {
     // implement your code here.
 #if NEIGHBOR_REMEMBER==1
@@ -43,39 +31,16 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
         }
         NeighborsAndCandidateSpace n_and_cs = NeighborsAndCandidateSpace(neighbors, candidates_space);
         CandidateSizeWithNeighborsAndSpace candidate_sz_with_vertex = CandidateSizeWithNeighborsAndSpace(u_cs_size, n_and_cs);
+        size_t weight = calculateWeight(u, query);
+        VertexWithWeight u_with_weight = VertexWithWeight(u, weight);
+        CandidateMappingRemember u_with_other_info = CandidateMappingRemember(u_with_weight, candidate_sz_with_vertex);
 
-        cs_queue.push({{u, 1000*query.GetLabel(u) + GetOtherLabelNum(u, query)}, candidate_sz_with_vertex});
+        cs_queue.push(u_with_other_info);
         // Weight : Label first, Other Node second :
-
 #if DEBUG_BUTTON == 1
         std::cout << u << "is INSERTED : WEIGHT IS " << 1000*query.GetLabel(u)+GetOtherLabelNum(u, query) << " and LABEL is " << query.GetLabel(u) << std::endl;
 #endif
-
     }
-    /*
-    std::cout << "-----TOTAL INFORMATION-----" << std::endl;
-    size_t a = query.GetNumVertices();
-    size_t b = query.GetNumLabels();
-    std::cout << "Total Vertice in Query is : " << a << std::endl;
-    std::cout << "Total Label in Query is : " << b << std::endl;
-    for(size_t i = 0 ; i < a ; i++){
-        Vertex check = i;
-        Label label = query.GetLabel(check);
-        size_t same = 0;
-        size_t other = 0;
-        for(size_t j = query.GetNeighborStartOffset(i); j < query.GetNeighborEndOffset(i); j++){
-            Vertex neighbor = query.GetNeighbor(j);
-            std::cout << "Vertex " << check << "'s neighbor : " << neighbor << " and label is : " << query.GetLabel(neighbor) << std::endl;
-            if (query.GetLabel(neighbor) != label){
-                other++;
-            } else {
-                same++;
-            }
-        }
-        std::cout << "Same Label Count : " << same << " Other Label Count : " << other << std::endl;
-    }*/
-
-
 #else
     CandidateSetQueue cs_queue = CandidateSetQueue();
     for (size_t i=0; i<query.GetNumVertices(); i++) {
@@ -154,7 +119,6 @@ void Backtrack::BackTrackMatches(const Graph &data, const Graph &query, Candidat
         CandidateSpace candidate_space = candidate_mapping.second.second.second;
         for (size_t i = 0; i < cs_sz; i++) {
             Vertex v = candidate_space[i];
-
             embedding[u] = v;
             mark[v] = true;
 #if DEBUG_BUTTON == 1
@@ -163,12 +127,11 @@ void Backtrack::BackTrackMatches(const Graph &data, const Graph &query, Candidat
 #endif
             BackTrackMatches(data, query, csq, embedding, mark);
             mark[v] = false;
-
         }
     }
 }
 
-bool CanbeCandi(const Vertex u, const Vertex v, const Graph &data, const Graph &query){
+bool CanBeCandi(const Vertex u, const Vertex v, const Graph &data, const Graph &query){
     //std::cout << " Can Be Candi FUNC OP" << std::endl;
     if(data.GetLabel(v) != query.GetLabel(u)){
         return false;
@@ -178,28 +141,15 @@ bool CanbeCandi(const Vertex u, const Vertex v, const Graph &data, const Graph &
         size_t label = query.GetLabel(query.GetNeighbor(i));
         size_t u_neigh = query.GetNeighborEndOffset(u, label) - query.GetNeighborStartOffset(u, label);
         size_t v_neigh = data.GetNeighborEndOffset(v, label) - data.GetNeighborStartOffset(v, label);
-        /*
-        std::cout << query.GetNeighbor(i) << " " <<  label << " : u_star neighbor : " << u_neigh << std::endl;
-        for(size_t i = query.GetNeighborStartOffset(u, label); i < query.GetNeighborEndOffset(u, label); i++) {
-            std::cout << query.GetNeighbor(i) << " ";
-        }
-        std::cout << std::endl;
-        std::cout << " v_star neighbor : " << v_neigh;
-        for(size_t i = data.GetNeighborStartOffset(v, label); i < data.GetNeighborEndOffset(v, label); i++) {
-            std::cout << data.GetNeighbor(i) << " ";
-        }
-        std::cout << std::endl;*/
+
         if(u_neigh > v_neigh) {
             return false;
         }
     }
     return true;
-
 }
 
 #else
-
-
 void Backtrack::BackTrackMatches(const Graph &data, const Graph &query, CandidateSetQueue csq, std::map<Vertex, Vertex> embedding,
                              std::map<Vertex, bool> &mark) {
 
@@ -286,13 +236,13 @@ CandidateMappingRemember Backtrack::GetExtendableVertex(const Graph &data, const
         }
     }
     // 2. fix candidate space
-#if DEBUG_BUTTON==2
+#if DEBUG_BUTTON==1
     std::cout << "candidate space before fixing: ";
     for (auto v : candidate_space) std::cout << v << " ";
     std::cout << std::endl;
 #endif
     FixCandidateSpace(data, query, u_star, candidate_space, u_star_neighbors_embedding, mark);
-#if DEBUG_BUTTON==2
+#if DEBUG_BUTTON==1
     std::cout << "candidate space after fixing: ";
     for (auto v : candidate_space) std::cout << v << " ";
     std::cout << std::endl;
@@ -302,11 +252,18 @@ CandidateMappingRemember Backtrack::GetExtendableVertex(const Graph &data, const
     if (candidate_space.empty()) { // No Extendable Vertex
         return CandidateMappingRemember({-1,-1}, CandidateSizeWithNeighborsAndSpace(-1, NeighborsAndCandidateSpace(Neighbors(), CandidateSpace())));
     }
+    // 3-B. else:
     else {
-        n_candidate_space = NeighborsAndCandidateSpace(n_candidate_space.first ,candidate_space);
-        CandidateSizeWithNeighborsAndSpace to_return_cs_sz_with_cs = CandidateSizeWithNeighborsAndSpace(candidate_space.size(), n_candidate_space);
-        CandidateMappingRemember to_return_candi_map = CandidateMappingRemember({u_star, query.GetLabelFrequency(u_star)}, to_return_cs_sz_with_cs);
-        return to_return_candi_map;
+        bool available = FixAllCandidateSpace(data, query, csq, embedding, mark);
+        if (available) { // if other u are available: return CandidateMapping
+            n_candidate_space = NeighborsAndCandidateSpace(n_candidate_space.first, candidate_space);
+            CandidateSizeWithNeighborsAndSpace to_return_cs_sz_with_cs = CandidateSizeWithNeighborsAndSpace(candidate_space.size(), n_candidate_space);
+            CandidateMappingRemember to_return_candi_map = CandidateMappingRemember({u_star, query.GetLabelFrequency(u_star)}, to_return_cs_sz_with_cs);
+            return to_return_candi_map;
+        }
+        else { // else: No Extendable Vertex
+            return CandidateMappingRemember({-1,-1}, CandidateSizeWithNeighborsAndSpace(-1, NeighborsAndCandidateSpace(Neighbors(), CandidateSpace())));
+        }
     }
 }
 
@@ -347,6 +304,42 @@ CandidateMapping Backtrack::GetExtendableVertex(const Graph &data, const Graph &
 }
 #endif
 
+bool Backtrack::FixAllCandidateSpace(const Graph &data, const Graph &query, CandidateSetQueueRemember &csq,
+                                     const Embedding &embedding, const std::map<Vertex, bool> &mark) {
+    bool available = true;
+    for(size_t i=0; i<csq.size(); i++) {
+        CandidateMappingRemember u_with_other_info = csq.top(); csq.pop();
+        VertexWithWeight u_with_weight = u_with_other_info.first;
+        Vertex u = u_with_weight.first;
+        CandidateSizeWithNeighborsAndSpace candidate_sz_with_vertex = u_with_other_info.second;
+        CandidateSpace candidate_space = candidate_sz_with_vertex.second.second;
+        Neighbors neighbors = candidate_sz_with_vertex.second.first;
+        Embedding neighbors_embedding = Embedding();
+
+        for (Vertex neighbor : neighbors) {
+            if (embedding.count(neighbor) > 0) {
+                neighbors_embedding[neighbor] = embedding.at(neighbor);
+            }
+        }
+
+        FixCandidateSpace(data, query, u, candidate_space, neighbors_embedding, mark);
+
+        NeighborsAndCandidateSpace new_neighbors_and_candidate_space = NeighborsAndCandidateSpace(neighbors, candidate_space);
+        CandidateSizeWithNeighborsAndSpace new_candidate_sz_with_vertex = CandidateSizeWithNeighborsAndSpace(candidate_space.size(), new_neighbors_and_candidate_space);
+        CandidateMappingRemember new_u_with_other_info = CandidateMappingRemember(u_with_weight, new_candidate_sz_with_vertex);
+        csq.push(new_u_with_other_info);
+
+        if (candidate_space.empty()) {
+#if DEBUG_BUTTON == 1
+            std::cout << "u" << u << " becomes unavailable!" << std::endl;
+#endif
+            available = false;
+            break;
+        }
+    }
+    return available;
+}
+
 void Backtrack::FixCandidateSpace(const Graph &data, const Graph &query, const Vertex &u_star, CandidateSpace &candidate_space,
                                   const Embedding &embedding, const std::map<Vertex, bool> &mark) {
     // 2-1. get rid of all v* which are already embedded.
@@ -377,12 +370,10 @@ void Backtrack::FixCandidateSpace(const Graph &data, const Graph &query, const V
         for (Vertex v_star : new_candidate_space) {
             bool can_be_candidate = true;
             // pruning : if candidate has lower neighbor than query vertex, It can not be.
+            if(!CanBeCandi(u_star, v_star, data, query)){
+                continue;
+            }
             for (auto mapping : embedding) {
-                if(!CanbeCandi(u_star, v_star, data, query)){
-                    can_be_candidate = false;
-                    break;
-                }
-
                 if (query.IsNeighbor(mapping.first, u_star) && !data.IsNeighbor(mapping.second, v_star)) {
                     can_be_candidate = false;
 #if DEBUG_BUTTON==2
