@@ -18,17 +18,7 @@ using CandidateSizeWithNeighborsAndSpace = std::pair<size_t, NeighborsAndCandida
 using VertexWithWeight = std::pair<Vertex, size_t>;
 using CandidateMapping = std::pair<VertexWithWeight, CandidateSizeWithSpace>;
 using CandidateMappingRemember = std::pair<VertexWithWeight , CandidateSizeWithNeighborsAndSpace>;
-struct cmp {
-    // CandidateMapping u : u1.first (Vertex v, Weight) / u1.second (Candidate Size, Candidate Space)
-    bool operator()(CandidateMapping &u1, CandidateMapping &u2) {
-        if(u1.second.first == u2.second.first) {
-            return u1.first.second < u2.first.second;
-        }
-        else {
-            return u1.first.second > u2.second.first;
-        }
-    }
-};
+
 struct cmp_remember {
     // CandidateMapping u : u1.first (Vertex v, Weight) / u1.second (Candidate Size, Candidate Space)
     bool operator()(CandidateMappingRemember &u1, CandidateMappingRemember &u2) {
@@ -41,7 +31,6 @@ struct cmp_remember {
     }
 };
 
-using CandidateSetQueue = std::priority_queue<CandidateMapping, std::vector<CandidateMapping>, cmp>;
 using CandidateSetQueueRemember = std::priority_queue<CandidateMappingRemember, std::vector<CandidateMappingRemember>, cmp_remember>;
 
 // csq = {{u, {candidate_sz, {u0, u1, u2, ... }}}, ... }
@@ -53,12 +42,8 @@ class Backtrack {
 
   void PrintAllMatches(const Graph &data, const Graph &query,
                        const CandidateSet &cs);
-  void BackTrackMatches(const Graph &data, const Graph &query, CandidateSetQueue csq, Embedding embedding,
-                        std::map<Vertex, bool> &mark);
   void BackTrackMatches(const Graph &data, const Graph &query, CandidateSetQueueRemember csq, Embedding embedding,
                           std::map<Vertex, bool> &mark);
-  CandidateMapping GetExtendableVertex(const Graph &data, const Graph &query, CandidateSetQueue &csq,
-                                       const Embedding &embedding, const std::map<Vertex, bool> &mark);
   CandidateMappingRemember GetExtendableVertex(const Graph &data, const Graph &query, CandidateSetQueueRemember &csq,
                                          const Embedding &embedding, const std::map<Vertex, bool> &mark);
 
