@@ -60,7 +60,7 @@ class Backtrack {
   CandidateMappingRemember GetExtendableVertex(const Graph &data, const Graph &query, CandidateSetQueueRemember &csq,
                                          const Embedding &embedding, const std::map<Vertex, bool> &mark);
 
-  void FixAllCandidateSpace(const Graph &data, const Graph &query, CandidateSetQueueRemember &csq,
+  bool FixAllCandidateSpace(const Graph &data, const Graph &query, CandidateSetQueueRemember &csq,
                             const Embedding &embedding, const std::map<Vertex, bool> &mark);
 
   void FixCandidateSpace(const Graph &data, const Graph &query, const Vertex &u_star, CandidateSpace &candidate_space,
