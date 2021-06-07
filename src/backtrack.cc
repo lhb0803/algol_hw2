@@ -4,8 +4,8 @@
  */
 
 #include "backtrack.h"
-#define DEBUG_BUTTON 0 // 0: off / 1: on / 2: check FixCandidateSpace()
-#define NEIGHBOR_REMEMBER 1
+#define DEBUG_BUTTON 0 // 0: off / 1: on / 2: check RefineCandidateSpace()
+#define NEIGHBOR_REMEMBER 1 // 1 : remember neighbor / 0 : Not remember
 
 Backtrack::Backtrack() {}
 Backtrack::~Backtrack() {}
@@ -16,6 +16,7 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
     // implement your code here.
 #if NEIGHBOR_REMEMBER==1
     CandidateSetQueueRemember cs_queue = CandidateSetQueueRemember();
+    // Queue containing CandidateSet : (Vertex, (size, CandidateSpace)
     for (size_t i=0; i<query.GetNumVertices(); i++) {
         auto u = (Vertex) i;
         auto u_cs_size = cs.GetCandidateSize(u);
@@ -29,6 +30,7 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query, const Can
         for (size_t j=0; j<u_cs_size; j++) {
             candidates_space.push_back(cs.GetCandidate(u, j));
         }
+        // Pushing Candidate
         NeighborsAndCandidateSpace n_and_cs = NeighborsAndCandidateSpace(neighbors, candidates_space);
         CandidateSizeWithNeighborsAndSpace candidate_sz_with_vertex = CandidateSizeWithNeighborsAndSpace(u_cs_size, n_and_cs);
         size_t weight = calculateWeight(u, query);
@@ -85,6 +87,7 @@ void Backtrack::BackTrackMatches(const Graph &data, const Graph &query, Candidat
         std::cout << "INITIATE" << std::endl;
 #endif
         CandidateMappingRemember candidate_mapping = GetExtendableVertex(data, query, csq, embedding, mark);
+        // Get Next Embedding Candidate
         Vertex r = candidate_mapping.first.first;
         if (r == -1) { // No Extendable Vertex
 #if DEBUG_BUTTON == 1
@@ -132,7 +135,7 @@ void Backtrack::BackTrackMatches(const Graph &data, const Graph &query, Candidat
 }
 
 bool CanBeCandi(const Vertex u, const Vertex v, const Graph &data, const Graph &query){
-    //std::cout << " Can Be Candi FUNC OP" << std::endl;
+    // Pruning Strategy : if Candidate v have less connect Vertex than u, prun.
     if(data.GetLabel(v) != query.GetLabel(u)){
         return false;
     }
@@ -241,7 +244,7 @@ CandidateMappingRemember Backtrack::GetExtendableVertex(const Graph &data, const
     for (auto v : candidate_space) std::cout << v << " ";
     std::cout << std::endl;
 #endif
-    FixCandidateSpace(data, query, u_star, candidate_space, u_star_neighbors_embedding, mark);
+    RefineCandidateSpace(data, query, u_star, candidate_space, u_star_neighbors_embedding, mark);
 #if DEBUG_BUTTON==1
     std::cout << "candidate space after fixing: ";
     for (auto v : candidate_space) std::cout << v << " ";
@@ -254,7 +257,7 @@ CandidateMappingRemember Backtrack::GetExtendableVertex(const Graph &data, const
     }
     // 3-B. else:
     else {
-        bool available = FixAllCandidateSpace(data, query, csq, embedding, mark);
+        bool available = RefineAllCandidateSpace(data, query, csq, embedding, mark);
         if (available) { // if other u are available: return CandidateMapping
             n_candidate_space = NeighborsAndCandidateSpace(n_candidate_space.first, candidate_space);
             CandidateSizeWithNeighborsAndSpace to_return_cs_sz_with_cs = CandidateSizeWithNeighborsAndSpace(candidate_space.size(), n_candidate_space);
@@ -284,7 +287,7 @@ CandidateMapping Backtrack::GetExtendableVertex(const Graph &data, const Graph &
     for (auto v : candidate_space) std::cout << v << " ";
     std::cout << std::endl;
 #endif
-    FixCandidateSpace(data, query, u_star, candidate_space, embedding, mark);
+    RefineCandidateSpace(data, query, u_star, candidate_space, embedding, mark);
 #if DEBUG_BUTTON == 2
     std::cout << "candidate space after fixing: ";
     for (auto v : candidate_space) std::cout << v << " ";
@@ -304,8 +307,9 @@ CandidateMapping Backtrack::GetExtendableVertex(const Graph &data, const Graph &
 }
 #endif
 
-bool Backtrack::FixAllCandidateSpace(const Graph &data, const Graph &query, CandidateSetQueueRemember &csq,
-                                     const Embedding &embedding, const std::map<Vertex, bool> &mark) {
+bool Backtrack::RefineAllCandidateSpace(const Graph &data, const Graph &query, CandidateSetQueueRemember &csq,
+                                        const Embedding &embedding, const std::map<Vertex, bool> &mark) {
+    // Refining Candidate Space
     bool available = true;
     for(size_t i=0; i<csq.size(); i++) {
         CandidateMappingRemember u_with_other_info = csq.top(); csq.pop();
@@ -322,7 +326,7 @@ bool Backtrack::FixAllCandidateSpace(const Graph &data, const Graph &query, Cand
             }
         }
 
-        FixCandidateSpace(data, query, u, candidate_space, neighbors_embedding, mark);
+        RefineCandidateSpace(data, query, u, candidate_space, neighbors_embedding, mark);
 
         NeighborsAndCandidateSpace new_neighbors_and_candidate_space = NeighborsAndCandidateSpace(neighbors, candidate_space);
         CandidateSizeWithNeighborsAndSpace new_candidate_sz_with_vertex = CandidateSizeWithNeighborsAndSpace(candidate_space.size(), new_neighbors_and_candidate_space);
@@ -340,8 +344,8 @@ bool Backtrack::FixAllCandidateSpace(const Graph &data, const Graph &query, Cand
     return available;
 }
 
-void Backtrack::FixCandidateSpace(const Graph &data, const Graph &query, const Vertex &u_star, CandidateSpace &candidate_space,
-                                  const Embedding &embedding, const std::map<Vertex, bool> &mark) {
+void Backtrack::RefineCandidateSpace(const Graph &data, const Graph &query, const Vertex &u_star, CandidateSpace &candidate_space,
+                                     const Embedding &embedding, const std::map<Vertex, bool> &mark) {
     // 2-1. get rid of all v* which are already embedded.
     CandidateSpace new_candidate_space = CandidateSpace();
     for (Vertex v_star : candidate_space) {
